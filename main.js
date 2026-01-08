@@ -2,7 +2,7 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
 const db = require('./database')
-const {getTotal, incrementCounter} = require('./functions')
+const {getTotal, incrementCounter, resetDatabase, getAllUsers, getRanking, getUser} = require('./functions')
 
 const GROUP_ID = ["120363423600712009@g.us", "109096514637843@lid"];
 const MESSAGE_TEMPLATE = /^Eu bebi \d+$/;
@@ -25,8 +25,13 @@ client.on('qr', (qr) => {
 
 client.on('message_create', async message => {
   try {
-    console.log(message.author);
+    if (message.from === '553195937043@c.us') {
+      message.reply("Cala boca seu feioso 🤬")
+    }
     if (!GROUP_ID.includes(message.from)) return
+    if (message.body === '!status') {
+      message.reply('Bot is alive 🍺')
+    }
     if (!isValidMessage(message)) return
     
     const userId = message.author
@@ -59,3 +64,61 @@ function isValidMessage(message) {
     return true
 }
 client.initialize();
+
+// server http
+const http = require('http')
+
+http.createServer(async (req, res) => {
+  const url = new URL(req.url, `http://${req.headers.host}`)
+  if (req.method === 'POST' && req.url.startsWith('/reset')) {
+
+    try {
+      await resetDatabase()
+      res.writeHead(200)
+      res.end('Contadores resetados com sucesso 🍺')
+    } catch (err) {
+      console.error(err)
+      res.writeHead(500)
+      res.end('Erro ao resetar')
+    }
+    return
+  }
+
+    // 🔍 todos os usuários
+  if (req.method === 'GET' && url.pathname === '/users') {
+    try {
+      const users = await getAllUsers()
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      return res.end(JSON.stringify(users))
+    } catch (err) {
+      res.writeHead(500)
+      return res.end('Erro ao buscar usuários')
+    }
+  }
+
+    // 👤 usuário específico
+  if (req.method === 'GET' && url.pathname === '/user') {
+    const userId = url.searchParams.get('id')
+    if (!userId) {
+      res.writeHead(400)
+      return res.end('Missing user id')
+  }
+}
+
+    // 🏆 ranking
+  if (req.method === 'GET' && url.pathname === '/ranking') {
+    try {
+      const ranking = await getRanking()
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      return res.end(JSON.stringify(ranking))
+    } catch (err) {
+      res.writeHead(500)
+      return res.end('Erro ao buscar ranking')
+    }
+  }
+
+  const total = await getTotal();
+  // healthcheck
+  res.writeHead(200)
+  res.end(`Bot alive 🍺 - Total: ${total}`)
+}).listen(3000)

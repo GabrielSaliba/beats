@@ -63,7 +63,62 @@ function getTotal() {
   })
 }
 
+function resetDatabase() {
+  return new Promise((resolve, reject) => {
+    db.serialize(() => {
+      db.run(`UPDATE counter SET total = 0 WHERE id = 1`)
+      db.run(`DELETE FROM user_counter`, err => {
+        if (err) return reject(err)
+        resolve()
+      })
+    })
+  })
+}
+
+function getAllUsers() {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT user_id, total FROM user_counter`,
+      (err, rows) => {
+        if (err) return reject(err)
+        resolve(rows)
+      }
+    )
+  })
+}
+
+function getUser(userId) {
+  return new Promise((resolve, reject) => {
+    db.get(
+      `SELECT user_id, total FROM user_counter WHERE user_id = ?`,
+      [userId],
+      (err, row) => {
+        if (err) return reject(err)
+        resolve(row || null)
+      }
+    )
+  })
+}
+
+function getRanking() {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT user_id, total 
+       FROM user_counter 
+       ORDER BY total DESC`,
+      (err, rows) => {
+        if (err) return reject(err)
+        resolve(rows)
+      }
+    )
+  })
+}
+
 module.exports = {
   incrementCounter,
-  getTotal
+  getTotal,
+  resetDatabase,
+  getAllUsers,
+  getRanking,
+  getUser
 }
