@@ -8,12 +8,19 @@ const GROUP_ID = ["120363423600712009@g.us", "109096514637843@lid"];
 const MESSAGE_TEMPLATE = /^Eu bebi \d+$/;
 
 const client = new Client({
-    puppeteer: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    },
-    authStrategy: new LocalAuth()
+  puppeteer: {
+    executablePath:
+      process.env.PUPPETEER_EXECUTABLE_PATH ||
+      "/nix/store/qa9cnw4v5xkxyip6mb9kxqfq1z4x2dx1-chromium-138.0.7204.100/bin/chromium",
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-gpu",
+      "--disable-dev-shm-usage",
+    ],
+  },
+  authStrategy: new LocalAuth(),
 });
-
 
 client.once('ready', () => {
     console.log('Client is ready!');
