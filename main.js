@@ -19,7 +19,9 @@ const client = new Client({
       "--disable-dev-shm-usage",
     ],
   },
-  authStrategy: new LocalAuth(),
+  authStrategy: new LocalAuth({
+    dataPath: "./sessions",
+  }),
 });
 
 client.once('ready', () => {
