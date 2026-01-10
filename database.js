@@ -21,6 +21,7 @@ db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS user_counter (
       user_id TEXT PRIMARY KEY,
+      name TEXT,
       total INTEGER NOT NULL
     )
   `)

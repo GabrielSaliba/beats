@@ -103,7 +103,7 @@ function getUser(userId) {
 function getRanking() {
   return new Promise((resolve, reject) => {
     db.all(
-      `SELECT user_id, total 
+      `SELECT user_id, total, name
        FROM user_counter 
        ORDER BY total DESC`,
       (err, rows) => {
