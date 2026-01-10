@@ -3,3 +3,4 @@
 /.wwebjs_cache
 counter.db
 package-lock.json
+/sessions
