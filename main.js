@@ -4,14 +4,13 @@ const qrcode = require('qrcode-terminal');
 const db = require('./database')
 const {getTotal, incrementCounter, resetDatabase, getAllUsers, getRanking, getUser} = require('./functions')
 
-const GROUP_ID = ["120363423600712009@g.us", "109096514637843@lid"];
-const MESSAGE_TEMPLATE = /^Eu bebi \d+$/;
+const GROUP_ID = ["120363423600712009@g.us", "109096514637843@lid", "120363406661638784@g.us"];
+const MESSAGE_TEMPLATE = /^Eu bebi (\d+)$/i;
 
 const client = new Client({
   puppeteer: {
     executablePath:
-      process.env.PUPPETEER_EXECUTABLE_PATH ||
-      "/nix/store/qa9cnw4v5xkxyip6mb9kxqfq1z4x2dx1-chromium-138.0.7204.100/bin/chromium",
+      process.env.PUPPETEER_EXECUTABLE_PATH,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -34,25 +33,41 @@ client.on('qr', (qr) => {
 
 client.on('message_create', async message => {
   try {
-    if (message.from === '553195937043@c.us') {
-      message.reply("Cala boca seu feioso 🤬")
-    }
     if (!GROUP_ID.includes(message.from)) return
     if (message.body === '!status') {
       message.reply('Bot is alive 🍺')
+    }
+
+    if (message.body === '!ranking') {
+      const ranking = await getRanking();
+
+      if (!ranking.length) {
+        await message.reply('Ainda não tem ninguém no ranking 🍺');
+        return;
+      }
+
+      const text = ranking
+        .map((user, index) => {
+          const position = index + 1;
+          const name = user.name || 'Usuário desconhecido';
+          const total = user.total;
+
+          return `${position}️⃣ ${name} — ${total} unidades`;
+        })
+        .join('\n');
+
+      const replyMessage = `🏆 Ranking Skol Beats 🍺\n\n${text}`;
+
+      await message.reply(replyMessage);
     }
     if (!isValidMessage(message)) return
     
     const userId = message.author
     const match = message.body.match(MESSAGE_TEMPLATE)
-    const amount = parseInt(match[0][8]);
+    const amount = Number(match[1]);
+    console.log(amount)
 
-    if (isNaN(amount) || amount <= 0 || amount > 5) {
-      await message.react('❌')
-      return;
-    }
-
-    if (match[0][9]) {
+    if (isNaN(amount) || amount <= 0 || amount > 10) {
       await message.react('❌')
       return;
     }
